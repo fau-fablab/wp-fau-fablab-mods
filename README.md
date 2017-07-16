@@ -12,9 +12,19 @@ Custom validation for the captcha field in register form for
 #### Usage:
 
 - Define `FABLAB_CAPTCHA_SOLUTION` in `wp-config.php`
-- add a text field to your forms
-- add custom validation `um_custom_validate_captcha` to this text field
-- add a permanent redirect from `/wp-login.php` to `/register/` in your web server
+- Add a text field to your forms
+- Add custom validation `um_custom_validate_captcha` to this text field
+- Add a permanent redirect from `/wp-login.php` to `/register/` in your web server
+
+### `DoorStateWidget`
+
+Display the current door state. Information are fetched from our [custom SpaceAPI
+implementation](https://github.com/fau-fablab/spaceapi/)
+
+#### Usage:
+
+- Ensure that jQuery is available as `jQuery` variable
+- Add the widget called "Türstatus" in the WordPress "Customizer"
 
 ## License
 
