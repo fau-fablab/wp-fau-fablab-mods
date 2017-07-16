@@ -79,12 +79,12 @@ function setDoorState(state, text) {
 }
 function updateDoorState() {
   jQuery.getJSON("/spaceapi/door/", function(data) {
-    var outdated = (new Date() / 1000 - data.time) > (60 * 60 * 24 * 7)
+    var outdated = (new Date() / 1000 - data.time) > (60 * 60 * 24 * 7);
     // new Date() / 1000: get current timestamp in sec instead of msec
     // the info is outdated if it is older than one week
     setDoorState(
       outdated ? "outdated" : data.state,
-      data.text + (outdated ? " (Diese Information ist evtl. veraltet.) " : ""),
+      data.text + (outdated ? " (Diese Information ist evtl. veraltet.) " : "")
     );
   });
 }
