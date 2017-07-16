@@ -13,14 +13,14 @@
 /**
  * custom form field validation for [UltimateMember](https://github.com/ultimatemember/ultimatemember/)
  * docs: http://docs.ultimatemember.com/article/94-apply-custom-validation-to-a-field
+ * define `FABLAB_CAPTCHA_SOLUTION` in wp-config.php
  */
 add_action('um_submit_form_errors_hook_', 'um_custom_validate_captcha', 999, 1);
 function um_custom_validate_captcha( $args ) {
 	global $ultimatemember;
 	$fablab_captcha_name = 'fablab_captcha';
-	$fablab_captcha_solution = 'Erlangen';
 
-	if ( !isset( $args[$fablab_captcha_name] ) || $args[$fablab_captcha_name] !== $fablab_captcha_solution) {
+	if ( !isset( $args[$fablab_captcha_name] ) || $args[$fablab_captcha_name] !== FABLAB_CAPTCHA_SOLUTION) {
 		$ultimatemember->form->add_error( $fablab_captcha_name, 'Diese Antwort ist leider falsch.' );
 	}
 }
