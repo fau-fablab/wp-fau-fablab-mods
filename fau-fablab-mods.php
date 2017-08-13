@@ -20,7 +20,7 @@ function um_custom_validate_captcha( $args ) {
 	global $ultimatemember;
 	$fablab_captcha_name = 'fablab_captcha';
 
-	if ( !isset( $args[$fablab_captcha_name] ) || $args[$fablab_captcha_name] !== FABLAB_CAPTCHA_SOLUTION) {
+	if ( isset( $args[$fablab_captcha_name] ) && $args[$fablab_captcha_name] !== FABLAB_CAPTCHA_SOLUTION ) {
 		$ultimatemember->form->add_error( $fablab_captcha_name, 'Diese Antwort ist leider falsch.' );
 	}
 }
