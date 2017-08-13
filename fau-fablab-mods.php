@@ -26,6 +26,46 @@ function um_custom_validate_captcha( $args ) {
 }
 
 /**
+ * export a CSV file including the name, their FAU Card ID and locking permission dates of all FabLab Betreuer.
+ */
+add_action('restrict_manage_users', 'fablab_export_schliessberechtigungen' );
+function fablab_export_schliessberechtigungen( $args ) {
+       ?>
+       <button class="button" title="Schließberechtigungen als CSV exportieren" type="button" onclick="export_schliessberechtigung_csv()">
+               Schließberechtigungen exportieren
+       </button>
+       <script>
+       function export_schliessberechtigung_csv() {
+               var csv_text = '"id"\t"name"\t"FAU Card ID"\t"Schliessberechtigung bis"\n';
+               <?php
+               $wp_users = get_users( array( 'role__not_in' => array( 'abonnent' ), 'fields' => array( 'ID' ) ) );
+               foreach( $wp_users as $wp_user ) {
+                       um_fetch_user( $wp_user->ID );
+                       $user_id = $wp_user->ID;
+                       $user_first_name = um_user('first_name');
+                       $user_last_name = um_user('last_name');
+                       $user_display_name = um_user('display_name');
+                       $user_fau_card_id = um_user('fau_card_id');
+                       $user_schliessberechtigung_bis = date( 'Y-m-d', strtotime( um_user( 'schliessberechtigung_bis' ) ) );
+                       ?>
+                       var user_id = <?= $user_id ?>;
+                       var user_first_name = "<?= str_replace('"', '\\\"', $user_first_name) ?>";
+                       var user_last_name = "<?= str_replace('"', '\\\"', $user_last_name) ?>";
+                       var user_display_name = "<?= str_replace('"', '\\\"', $user_display_name) ?>";
+                       var user_fau_card_id = "<?= str_replace('"', '\\\"', $user_fau_card_id) ?>";
+                       var user_schliessberechtigung_bis = "<?= str_replace('"', '\\\"', $user_schliessberechtigung_bis) ?>";
+                       var user_name = `${user_first_name} ${user_last_name}`.trim() || user_display_name.trim();
+                       csv_text += `${user_id}\t"${user_name}"\t"${user_fau_card_id}"\t"${user_schliessberechtigung_bis}"\n`;
+                       <?php
+               }
+               ?>
+               location.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv_text);
+       }
+       </script>
+       <?php
+}
+
+/**
  * DoorState Widget
  * docs: https://codex.wordpress.org/Widgets_API
  */
