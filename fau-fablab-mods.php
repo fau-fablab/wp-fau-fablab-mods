@@ -45,17 +45,17 @@ function fablab_export_schliessberechtigungen( $args ) {
                        $user_first_name = um_user('first_name');
                        $user_last_name = um_user('last_name');
                        $user_display_name = um_user('display_name');
-                       $user_fau_card_id = um_user('fau_card_id');
+                       $user_fau_id = um_user('fau_id');
                        $user_schliessberechtigung_bis = date( 'Y-m-d', strtotime( um_user( 'schliessberechtigung_bis' ) ) );
                        ?>
                        var user_id = <?= $user_id ?>;
                        var user_first_name = "<?= str_replace('"', '\\\"', $user_first_name) ?>";
                        var user_last_name = "<?= str_replace('"', '\\\"', $user_last_name) ?>";
                        var user_display_name = "<?= str_replace('"', '\\\"', $user_display_name) ?>";
-                       var user_fau_card_id = "<?= str_replace('"', '\\\"', $user_fau_card_id) ?>";
+                       var user_fau_id = "<?= str_replace('"', '\\\"', $user_fau_id) ?>";
                        var user_schliessberechtigung_bis = "<?= str_replace('"', '\\\"', $user_schliessberechtigung_bis) ?>";
                        var user_name = `${user_first_name} ${user_last_name}`.trim() || user_display_name.trim();
-                       csv_text += `${user_id}\t"${user_name}"\t"${user_fau_card_id}"\t"${user_schliessberechtigung_bis}"\n`;
+                       csv_text += `${user_id}\t"${user_name}"\t"${user_fau_id}"\t"${user_schliessberechtigung_bis}"\n`;
                        <?php
                }
                ?>
