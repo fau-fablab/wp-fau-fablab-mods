@@ -1,0 +1,28 @@
+.fablab_doorstate_widget.opened {
+	color: #209365;
+}
+.fablab_doorstate_widget.closed {
+	color: #C32027;
+}
+.fablab_doorstate_widget.outdated {
+	color: #C3B920;
+}
+.fablab_doorstate_badge.opened {
+	fill: #209365;
+}
+.fablab_doorstate_badge.closed {
+	fill: #C32027;
+}
+.fablab_doorstate_badge.outdated {
+	fill: #C3B920;
+}
+.fablab_doorstate_badge {
+	width: 2em;
+	height: 1em;
+	bottom: 0;
+	margin: 0;
+	margin-bottom: -0.2em;
+	transition: fill .5s;  /* change color smoothly if door state changes  */
+	display: none;  /* fade in */
+	fill: #C3B920;  /* yellow, like outdated */
+}

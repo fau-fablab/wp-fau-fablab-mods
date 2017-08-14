@@ -95,47 +95,7 @@ class DoorStateWidget extends WP_Widget {
 		if ( ! empty( $instance['title'] ) ) {
 			echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
 		}
-?>
-<strong class="fablab_doorstate"></strong>
-<style>
-  .fablab_doorstate.opened {
-    color: #209365;
-  }
-  .fablab_doorstate.closed {
-    color: #C32027;
-  }
-  .fablab_doorstate.outdated {
-    color: #153a63;
-  }
-</style>
-<script>
-function setDoorState(state, text) {
-  jQuery(".fablab_doorstate").each(function(){
-    var element = jQuery(this);
-    if (element.text() != text || !element.hasClass(state)) {
-      element.fadeOut("slow", function() {
-	element.removeClass("opened closed outdated").addClass(state).text(text).fadeIn();
-      });
-    }
-  });
-}
-function updateDoorState() {
-  jQuery.getJSON("/spaceapi/door/", function(data) {
-    var outdated = (new Date() / 1000 - data.time) > (60 * 60 * 24 * 7);
-    // new Date() / 1000: get current timestamp in sec instead of msec
-    // the info is outdated if it is older than one week
-    setDoorState(
-      outdated ? "outdated" : data.state,
-      data.text + (outdated ? " (Diese Information ist evtl. veraltet.) " : "")
-    );
-  });
-}
-jQuery(document).ready(function() {
-  updateDoorState();
-  window.setInterval(updateDoorState, 60 * 1000);
-});
-</script>
-<?php
+		echo '<strong class="fablab_doorstate_widget"></strong>';
 		echo $args['after_widget'];
 	}
 
@@ -171,3 +131,18 @@ jQuery(document).ready(function() {
 add_action( 'widgets_init', function(){
 	register_widget( 'DoorStateWidget' );
 });
+
+/**
+ * Add custom style and javascript. This is used for the widget and other customizations.
+ */
+function faufablab_enqueue_styles_and_scripts() {
+	wp_enqueue_style(
+		'faufablab_style',
+		plugins_url('style.css', __FILE__)
+	);
+	wp_enqueue_script(
+		'faufablab_script',
+		plugins_url('script.js', __FILE__)
+	);
+}
+add_action('wp_enqueue_scripts', 'faufablab_enqueue_styles_and_scripts');
