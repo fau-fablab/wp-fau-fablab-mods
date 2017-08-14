@@ -10,6 +10,8 @@
  * License: CC BY 4.0
  */
 
+defined('ABSPATH') or die("[!] This script must be executed by a wordpress instance!\r\n");
+
 /**
  * custom form field validation for [UltimateMember](https://github.com/ultimatemember/ultimatemember/)
  * docs: http://docs.ultimatemember.com/article/94-apply-custom-validation-to-a-field
