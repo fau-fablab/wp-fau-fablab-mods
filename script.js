@@ -1,3 +1,7 @@
+/*
+ * DoorState
+ */
+
 function setDoorState(state, text) {
   jQuery(".fablab_doorstate_widget, .fablab_doorstate_text").each(function(){
     var element = jQuery(this);
@@ -41,4 +45,26 @@ jQuery(document).ready(function() {
   addSiteDescriptionDoorIndicator();
   updateDoorState();
   window.setInterval(updateDoorState, 60 * 1000);
+});
+
+/*
+ * Filter calendar events in next events list
+ */
+var EVENT_NAMES_TO_DISPLAY = ['openlab', 'selflab', 'betreuertreffen', 'radlab', 'näh', 'stick', 'zerspanungslab', 'fräsen', 'drehbank', 'beratung'];
+var NEXT_EVENTS_CALENDAR_ID = '267';
+
+jQuery(document).ready(function() {
+  var calendarList = jQuery(`[data-calendar-id="${NEXT_EVENTS_CALENDAR_ID}"]`);
+  calendarList.find('.simcal-event-title').each(function() {
+    var eventName = jQuery(this).text().replace('-', '').toLowerCase();
+    for (var validNameIndex in EVENT_NAMES_TO_DISPLAY) {
+      if (eventName.indexOf(EVENT_NAMES_TO_DISPLAY[validNameIndex]) >= 0) {
+        return;  // is valid -> keep
+      }
+    }
+    jQuery(this).parents('.simcal-event').remove();
+  });
+  if (calendarList.find('.simcal-calendar-list').text().trim() === '') {
+    calendarList.find('.simcal-calendar-list').text('Diese Woche sind keine öffentlichen Termine eingetragen.');
+  }
 });

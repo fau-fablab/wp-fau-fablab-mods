@@ -25,6 +25,24 @@ implementation](https://github.com/fau-fablab/spaceapi/)
 
 - Ensure that jQuery is available as `jQuery` variable
 - Add the widget called "Türstatus" in the WordPress "Customizer"
+- The door state will additionally be displayed in the `.site-description` below the page title
+
+### Filter events in "Nächste Termine" list on start page
+
+Most people just want to see when the next (Open|Self|Rad|Zerspanungs|...)Lab takes place.
+They are not interested in internal events like "OrgaTreffen".
+So we have to filter out such events from the "Nächste Termine" list on the start page.
+
+The easiest (but dirtiest) way is to do this with Javascript :tada:
+
+#### Usage:
+
+- Ensure that jQuery is available as `jQuery` variable
+- Ensure that the `NEXT_EVENTS_CALENDAR_ID` in `script.js` is the ID of the events calendar list
+  (check its class name)
+- Ensure that all possible event names, that should be displayed in the list, are listed in
+  `EVENT_NAMES_TO_DISPLAY` in `script.js` (lowercase, without `-`). An event will be show if one of
+  the words in this list is part of the event title.
 
 ## License
 
