@@ -28,17 +28,6 @@ function fablab_um_custom_validate_captcha( $args ) {
 }
 
 /**
- * obfuscate the profile image url.
- * docs: not found
- * instructions: define `FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET` in wp-config.php
- */
-add_action('um_upload_basedir_filter', 'fablab_um_custom_profile_image_upload_dir', 999, 1);
-add_action('um_upload_baseurl_filter', 'fablab_um_custom_profile_image_upload_dir', 999, 1);
-function fablab_um_custom_profile_image_upload_dir( $url ) {
-       return $url . FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET . '/';
-}
-
-/**
  * export a CSV file including the name, their FAU Card ID and locking permission dates of all FabLab Betreuer.
  */
 add_action('restrict_manage_users', 'fablab_export_schliessberechtigungen' );
