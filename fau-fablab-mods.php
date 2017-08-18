@@ -15,16 +15,27 @@ defined('ABSPATH') or die("[!] This script must be executed by a wordpress insta
 /**
  * custom form field validation for [UltimateMember](https://github.com/ultimatemember/ultimatemember/)
  * docs: http://docs.ultimatemember.com/article/94-apply-custom-validation-to-a-field
- * define `FABLAB_CAPTCHA_SOLUTION` in wp-config.php
+ * instructions: define `FABLAB_CAPTCHA_SOLUTION` in wp-config.php
  */
-add_action('um_submit_form_errors_hook_', 'um_custom_validate_captcha', 999, 1);
-function um_custom_validate_captcha( $args ) {
+add_action('um_submit_form_errors_hook_', 'fablab_um_custom_validate_captcha', 999, 1);
+function fablab_um_custom_validate_captcha( $args ) {
 	global $ultimatemember;
 	$fablab_captcha_name = 'fablab_captcha';
 
 	if ( isset( $args[$fablab_captcha_name] ) && $args[$fablab_captcha_name] !== FABLAB_CAPTCHA_SOLUTION ) {
 		$ultimatemember->form->add_error( $fablab_captcha_name, 'Diese Antwort ist leider falsch.' );
 	}
+}
+
+/**
+ * obfuscate the profile image url.
+ * docs: not found
+ * instructions: define `FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET` in wp-config.php
+ */
+add_action('um_upload_basedir_filter', 'fablab_um_custom_profile_image_upload_dir', 999, 1);
+add_action('um_upload_baseurl_filter', 'fablab_um_custom_profile_image_upload_dir', 999, 1);
+function fablab_um_custom_profile_image_upload_dir( $url ) {
+       return $url . FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET . '/';
 }
 
 /**

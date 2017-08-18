@@ -4,7 +4,7 @@ WordPress mods and extensions which are not worth for a own plugin.
 
 ## Contents
 
-### `um_custom_validate_captcha`
+### `fablab_um_custom_validate_captcha`
 
 Custom validation for the captcha field in register form for
 [UltimateMember](https://github.com/ultimatemember/ultimatemember/).
@@ -15,6 +15,16 @@ Custom validation for the captcha field in register form for
 - Add a text field to your forms
 - Add custom validation `um_custom_validate_captcha` to this text field
 - Add a permanent redirect from `/wp-login.php` to `/register/` in your web server
+
+### `fablab_um_custom_profile_image_upload_dir`
+
+Obfuscate the URL to our profile images (managed by
+[UltimateMember](https://github.com/ultimatemember/ultimatemember/)) by adding a random string.
+
+#### Usage:
+
+- Define `FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET` in `wp-config.php`
+- Move all profile images to `wp-content/uploads/ultimatemember/<secret>/`
 
 ### `DoorStateWidget`
 
