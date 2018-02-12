@@ -140,6 +140,7 @@ function faufablab_enqueue_styles_and_scripts() {
 		'faufablab_style',
 		plugins_url('style.css', __FILE__)
 	);
+	wp_enqueue_script('jquery');
 	wp_enqueue_script(
 		'faufablab_script',
 		plugins_url('script.js', __FILE__)

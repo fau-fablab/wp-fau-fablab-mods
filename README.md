@@ -23,7 +23,6 @@ implementation](https://github.com/fau-fablab/spaceapi/)
 
 #### Usage:
 
-- Ensure that jQuery is available as `jQuery` variable
 - Add the widget called "Türstatus" in the WordPress "Customizer"
 - The door state will additionally be displayed in the `.site-description` below the page title
 
@@ -37,7 +36,6 @@ The easiest (but dirtiest) way is to do this with Javascript :tada:
 
 #### Usage:
 
-- Ensure that jQuery is available as `jQuery` variable
 - Ensure that the `NEXT_EVENTS_CALENDAR_ID` in `script.js` is the ID of the events calendar list
   (check its class name)
 - Ensure that all possible event names, that should be displayed in the list, are listed in
