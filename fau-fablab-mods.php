@@ -12,52 +12,222 @@
 
 defined('ABSPATH') or die("[!] This script must be executed by a wordpress instance!\r\n");
 
-/**
- * custom form field validation for [UltimateMember](https://github.com/ultimatemember/ultimatemember/)
- * docs: http://docs.ultimatemember.com/article/94-apply-custom-validation-to-a-field
- * instructions: define `FABLAB_CAPTCHA_SOLUTION` in wp-config.php
- */
-add_action('um_submit_form_errors_hook_', 'fablab_um_custom_validate_captcha', 999, 1);
-function fablab_um_custom_validate_captcha( $args ) {
-	global $ultimatemember;
-	$fablab_captcha_name = 'fablab_captcha';
+include 'admin_notices.php';
 
-	if ( isset( $args[$fablab_captcha_name] ) && $args[$fablab_captcha_name] !== FABLAB_CAPTCHA_SOLUTION ) {
-		$ultimatemember->form->add_error( $fablab_captcha_name, 'Diese Antwort ist leider falsch.' );
+/**
+ * Add Mobile number and FAU Card ID Field to contact methods
+ */
+function faufablab_custom_contact_methods( $fields ) {
+	$fields['mobile'] = __( 'Mobile' );
+	$fields['fau_id'] = __( 'FAU Card ID' );
+	return $fields;
+}
+add_filter( 'user_contactmethods', 'faufablab_custom_contact_methods' );
+
+define( 'FAUFABLAB_SUPPORTED_PROFILE_IMAGE_EXTENSIONS', array( 'image/jpeg' => 'jpg', 'image/png' => 'png' ) );
+define( 'FAUFABLAB_PROFILE_IMAGE_BASE_DIR', wp_upload_dir()['basedir'] .
+		"/faufablab_profile_images_" .
+		FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET .
+		"/"
+);
+define( 'FAUFABLAB_PROFILE_IMAGE_BASE_URL',  wp_upload_dir()['baseurl'] .
+		"/faufablab_profile_images_" .
+		FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET .
+		"/"
+);
+define( 'FAUFABLAB_DEFAULT_IMAGE_FILE_NAME', plugin_dir_path( __FILE__ ) . '/avatar.jpg' );
+define( 'FAUFABLAB_DEFAULT_IMAGE_URL', plugin_dir_url( __FILE__ ) . '/avatar.jpg' );
+define( 'FAUFABLAB_PROFILE_IMAGE_MAX_SIZE', 1024 * 1024 );
+
+/**
+ * Return the file name of the profile image for $user relative to faufablab_profile_image_base_dir or rather faufablab_profile_image_base_url.
+ * If $file_extension is given, it won't be checked if the file exists (for image upload).
+ * If $file_extension is not given, this function will try all supported extensions in order and return that file name that exists or '' otherwise.
+ */
+function faufablab_profile_image_filename( $user, $file_extension = "" ) {
+	if ( ! is_dir( FAUFABLAB_PROFILE_IMAGE_BASE_DIR ) ) {
+		// create directory and disable caches by writing .htaccess
+		wp_mkdir_p( FAUFABLAB_PROFILE_IMAGE_BASE_DIR );
+		fwrite( fopen( FAUFABLAB_PROFILE_IMAGE_BASE_DIR . '/.htaccess', 'w' ), '
+<filesMatch "\.(jpg|png)$">
+  FileETag None
+  <ifModule mod_headers.c>
+     Header unset ETag
+     Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+     Header set Pragma "no-cache"
+     Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+  </ifModule>
+</filesMatch>
+' );
+	}
+	$fn_hash = hash( "sha256", $user->user_nicename . FABLAB_PROFILE_IMAGE_UPLOAD_DIR_SECRET );
+	if ( $file_extension != '' ) {
+		return $fn_hash . '.' . $file_extension;
+	} else {
+		foreach ( array_values( FAUFABLAB_SUPPORTED_PROFILE_IMAGE_EXTENSIONS ) as $extension ) {
+			if ( is_file( FAUFABLAB_PROFILE_IMAGE_BASE_DIR . '/' . $fn_hash . '.' . $extension ) ) {
+				return $fn_hash . '.' . $extension;
+			}
+		}
+		// no profile image:
+		return '';
 	}
 }
 
 /**
- * export a CSV file including the name, their FAU Card ID and locking permission dates of all FabLab Betreuer.
+ * Return the full image path for the profile image of $user. See faufablab_profile_image_filename.
  */
-add_action('restrict_manage_users', 'fablab_export_schliessberechtigungen' );
-function fablab_export_schliessberechtigungen( $args ) {
+function faufablab_profile_image_path( $user, $file_extension = '' ) {
+	$file_name = faufablab_profile_image_filename( $user, $file_extension );
+	if ( $file_name == '' ) {
+		return '';
+	} else {
+		return FAUFABLAB_PROFILE_IMAGE_BASE_DIR . $file_name;
+	}
+}
+
+/**
+ * Return the full image url for the profile image of $user or a default url if there is no image. See faufablab_profile_image_filename.
+ */
+function faufablab_profile_image_url( $user ) {
+	$file_name = faufablab_profile_image_filename( $user );
+	if ( $file_name == '' ) {
+		return FAUFABLAB_DEFAULT_IMAGE_URL;
+	} else {
+		return FAUFABLAB_PROFILE_IMAGE_BASE_URL . $file_name;
+	}
+}
+
+/**
+ * Add custom profile image upload form.
+ */
+function faufablab_add_user_fields( $user ) {
+	?>
+<table class="form-table">
+	<tr>
+		<th><label for="dropdown">Profilbild</label></th>
+		<td>
+			<div>
+				<input type="file" id="faufablab_profile_image_file" name="faufablab_profile_image" hidden>
+				<button type="button" class="button" id="faufablab_profile_image_preview"
+				 style="width:100px;height:100px;padding:1px;background-image:url('<?= faufablab_profile_image_url( $user ) ?>');background-size:cover;background-repeat:no-repeat;background-position:50% 50%;"
+				 onclick="document.getElementById('faufablab_profile_image_file').click();">
+				</button>
+				<script>
+jQuery("#faufablab_profile_image_file").change(function() {
+	if (this.files && this.files[0]) {
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			jQuery('#faufablab_profile_image_preview').css('background-image', `url("${e.target.result}")`);
+		}
+		reader.readAsDataURL(this.files[0]);
+	}
+});
+				</script>
+				<p>
+					<span class="description">
+						Dein Profilbild für die <a href="/aktive/">List der Aktiven</a>.
+					</span>
+				</p>
+			</div>
+		</td>
+	</tr>
+</table>
+	<?php
+}
+add_action( 'show_user_profile', 'faufablab_add_user_fields' );
+add_action( 'edit_user_profile', 'faufablab_add_user_fields' );
+
+/**
+ * Set the attribute enctype to multipart for the default profile editing form to support image upload.
+ */
+function faufablab_enctype_multipart( ) {
+   echo ' enctype="multipart/form-data"';
+}
+add_action( 'user_edit_form_tag' , 'faufablab_enctype_multipart' );
+
+/**
+ * Save custom profile image.
+ */
+function faufablab_save_user_fields( $user_id ) {
+	$user = get_user_by( 'id', $user_id );
+
+	if ( !current_user_can( 'edit_user', $user ) ) {
+		FAUFabLabAdminNotice::displayError(__('You are not allowed to edit this user!'));
+		return false;
+	}
+
+	if ( ! function_exists( 'wp_handle_upload' ) ) {
+		require_once( ABSPATH . 'wp-admin/includes/file.php' );
+	}
+
+	$uploaded_file = $_FILES['faufablab_profile_image'];
+
+	if ( $uploaded_file['size'] == 0 ) {
+		// keep old file
+		return true;
+	} else if ( $uploaded_file['size'] > FAUFABLAB_PROFILE_IMAGE_MAX_SIZE ) {
+		FAUFabLabAdminNotice::displayError(__('Profile image is too large! It must be smaller than ' . FAUFABLAB_PROFILE_IMAGE_MAX_SIZE/1024 . ' KiB' ));
+		return false;
+	}
+
+	// upload
+	$upload_overrides = array( 'test_form' => false );
+	$upload_result = wp_handle_upload( $uploaded_file, $upload_overrides );
+
+	if ( $upload_result && ! isset( $upload_result['error'] ) ) {
+		if ( ! in_array( $upload_result['type'], array_keys( FAUFABLAB_SUPPORTED_PROFILE_IMAGE_EXTENSIONS ))) {
+			FAUFabLabAdminNotice::displayError( __( 'Unsupported mime type!' ) );
+			unlink( $upload_result['file'] );
+			return false;
+		}
+		$extension = FAUFABLAB_SUPPORTED_PROFILE_IMAGE_EXTENSIONS[$upload_result['type']];
+		$filename = faufablab_profile_image_path( $user, $extension );
+
+		// delete old image
+		$old_image = faufablab_profile_image_path( $user );
+		if ( $old_image != '' ) {
+			unlink( $old_image );
+		}
+
+		// rename new image
+		if ( ! rename( $upload_result['file'], $filename ) ) {
+			FAUFabLabAdminNotice::displayError(__('Could not move file! Please contact the admin.'));
+			unlink( $upload_result['file'] );
+			return false;
+		}
+
+		// success
+		FAUFabLabAdminNotice::displaySuccess(__('Successfully uploaded profile image.'));
+		return true;
+	} else {
+		FAUFabLabAdminNotice::displayError( $upload_result['error'] );
+		return false;
+	}
+}
+add_action( 'personal_options_update', 'faufablab_save_user_fields' );
+add_action( 'edit_user_profile_update', 'faufablab_save_user_fields' );
+
+/**
+ * export a CSV file including the name and their FAU Card ID of all FabLab Betreuer.
+ */
+add_action('restrict_manage_users', 'fablab_export_fauids' );
+function fablab_export_fauids( $args ) {
        ?>
-       <button class="button" title="Schließberechtigungen als CSV exportieren" type="button" onclick="export_schliessberechtigung_csv()">
-               Schließberechtigungen exportieren
+       <button class="button" title="FAU IDs als CSV exportieren" type="button" onclick="export_fauids_csv()">
+               FAU IDs exportieren
        </button>
        <script>
-       function export_schliessberechtigung_csv() {
-               var csv_text = '"id"\t"name"\t"FAU Card ID"\t"Schliessberechtigung bis"\n';
+       function export_fauids_csv() {
+               var csv_text = '"id"\t"name"\t"FAU Card ID"\n';
                <?php
-               $wp_users = get_users( array( 'role__not_in' => array( 'abonnent' ), 'fields' => array( 'ID' ) ) );
+               $wp_users = get_users( array( 'role_in' => array( 'editor' ) ) );
                foreach( $wp_users as $wp_user ) {
-                       um_fetch_user( $wp_user->ID );
-                       $user_id = $wp_user->ID;
-                       $user_first_name = um_user('first_name');
-                       $user_last_name = um_user('last_name');
-                       $user_display_name = um_user('display_name');
-                       $user_fau_id = um_user('fau_id');
-                       $user_schliessberechtigung_bis = date( 'Y-m-d', strtotime( um_user( 'schliessberechtigung_bis' ) ) );
                        ?>
-                       var user_id = <?= $user_id ?>;
-                       var user_first_name = "<?= str_replace('"', '\\\"', $user_first_name) ?>";
-                       var user_last_name = "<?= str_replace('"', '\\\"', $user_last_name) ?>";
-                       var user_display_name = "<?= str_replace('"', '\\\"', $user_display_name) ?>";
-                       var user_fau_id = "<?= str_replace('"', '\\\"', $user_fau_id) ?>";
-                       var user_schliessberechtigung_bis = "<?= str_replace('"', '\\\"', $user_schliessberechtigung_bis) ?>";
-                       var user_name = `${user_first_name} ${user_last_name}`.trim() || user_display_name.trim();
-                       csv_text += `${user_id}\t"${user_name}"\t"${user_fau_id}"\t"${user_schliessberechtigung_bis}"\n`;
+                       var user_id = <?= $wp_user->id ?>;
+                       var user_display_name = "<?= str_replace('"', '\\\"', $wp_user->display_name) ?>";
+                       var user_fau_id = "<?= str_replace('"', '\\\"', $wp_user->fau_id) ?>";
+                       csv_text += `${user_id}\t"${user_display_name}"\t"${user_fau_id}"\n`;
                        <?php
                }
                ?>
@@ -66,6 +236,103 @@ function fablab_export_schliessberechtigungen( $args ) {
        </script>
        <?php
 }
+
+/**
+ * Display a list of all active members (>= editor wordpress role) for all active members whenever the shortcode [ aktivenliste ] is used.
+ */
+function faufablab_print_listederaktiven( $attrs ) {
+	if ( ! current_user_can( "level_3" ) ) {
+		return "<h2>Diese Seite dürfen nur Betreuer und Aktive sehen<br><small>(WordPress Rolle >= Redakteur)</smal></h2>";
+	// } else if ( current_user_can( "level_10" ) ) {
+	// 	fablab_export_fauids();
+	}
+
+	$users = get_users( array(
+		'role_in' => array( 'editor' )
+	) );
+
+	$ret = '
+		<table id="listederaktiven">
+			<thead>
+				<tr>
+					<th>Bild</th>
+					<th>Name</th>
+					<th>E-Mail</th>
+					<th>Mobile</th>
+					<th>VCard</th>
+				</tr>
+			</thead>';
+
+	$image_type = array( 'jpg' => 'JPEG', 'png' => 'PNG' );
+	foreach ( $users as &$user ) {
+		// $user->user_nicename,
+		$avatar_url = faufablab_profile_image_url( $user );
+		$avatar_file_path = faufablab_profile_image_path( $user );
+		$avatar_base64 = '';
+		try {
+			$avatar_file = fopen( $avatar_file_path, 'r' );
+			$avatar_content = fread( $avatar_file, filesize( $avatar_file_path ) );
+			fclose( $avatar_file );
+			$avatar_base64 = base64_encode( $avatar_content );
+		} catch (Exception $exc) {}
+
+
+		// mimetype wird im Zweifelsfall jpeg sein...
+		$avatar_type = "JPEG";
+		try {
+			// try catch, weil das zu 90% schief geht
+			$tmp = explode( ".", $avatar_url );
+			$avatar_type = $image_type[end( $tmp )];
+			if ( $avatar_type == '' ) {
+				// wird schon jpeg sein
+				$avatar_type = 'JPEG';
+			}
+		} catch (Exception $exc) {}
+
+		$ret = $ret . '
+			<tbody>
+				<tr>
+					<script>
+var faufablab_vcard_' . $user->ID . ' = `BEGIN:VCARD
+VERSION:2.1
+FN:' . $user->display_name . '
+ORG:FAU FabLab
+PHOTO;ENCODING=BASE64;' . $avatar_type . ':' . $avatar_base64 . '
+TEL;CELL:' . $user->mobile . '
+EMAIL;WORK:' . $user->user_email . '
+REV:' . date("Ymd\THis\Z") . '
+END:VCARD
+`;
+					</script>
+					<td>
+						<div style="
+							width:100px;
+							height:100px;
+							padding:1px;
+							background-image:url(' . $avatar_url . ');
+							background-size:cover;
+							background-repeat:no-repeat;
+							background-position:50% 50%;
+						"></div>
+					</td>
+					<td>' . $user->display_name . '</td>
+					<td><a href="mailto:' . $user->user_email . '">' . $user->user_email . '</a></td>
+					<td><a href="tel:' . $user->mobile . '">' . $user->mobile . '</a></td>
+					<td>
+						<button class="faufablab_vcard_export" type="button"
+							onclick="location.href=\'data:text/vcard;charset=utf-8,\' + encodeURIComponent(faufablab_vcard_' . $user->ID . ');">
+							⬇
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		';
+	}
+
+	$ret = $ret . "</table>";
+	return $ret;
+}
+add_shortcode( 'aktivenliste', 'faufablab_print_listederaktiven' );
 
 /**
  * DoorState Widget
