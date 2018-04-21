@@ -12,11 +12,11 @@
 
 defined('ABSPATH') or die("[!] This script must be executed by a wordpress instance!\r\n");
 
-include 'admin_notices.php';
-include 'registration_form_extras.php';
-include 'login_form_style.php';
-include 'profile_image.php';
-include 'custom_user_fields.php';
-include 'liste_der_aktiven.php';
-include 'fablab_door.php';
-include 'privacy.php';
+require_once 'faufablab_admin_notices.php';
+require_once 'faufablab_registration_form_extras.php';
+require_once 'faufablab_login_form_style.php';
+require_once 'faufablab_profile_image.php';
+require_once 'faufablab_custom_user_fields.php';
+require_once 'faufablab_liste_der_aktiven.php';
+require_once 'faufablab_door.php';
+require_once 'faufablab_privacy.php';

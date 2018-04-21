@@ -14,7 +14,7 @@ function faufablab_print_listederaktiven( $attrs ) {
 	}
 
 	$users = get_users( array(
-		'role_in' => array( 'editor' )
+		'role__in' => array( 'editor', 'administrator' )
 	) );
 
 	$ret = '
@@ -34,26 +34,36 @@ function faufablab_print_listederaktiven( $attrs ) {
 		// $user->user_nicename,
 		$avatar_url = faufablab_profile_image_url( $user );
 		$avatar_file_path = faufablab_profile_image_path( $user );
-		$avatar_base64 = '';
-		try {
-			$avatar_file = fopen( $avatar_file_path, 'r' );
-			$avatar_content = fread( $avatar_file, filesize( $avatar_file_path ) );
-			fclose( $avatar_file );
-			$avatar_base64 = base64_encode( $avatar_content );
-		} catch (Exception $exc) {}
 
-
-		// mimetype wird im Zweifelsfall jpeg sein...
-		$avatar_type = "JPEG";
+		// construct image for vcard:
+		$avatar_vcard_line = 'PHOTO;ENCODING=BASE64;';
+		// determine image type
 		try {
 			// try catch, weil das zu 90% schief geht
 			$tmp = explode( ".", $avatar_url );
 			$avatar_type = $image_type[end( $tmp )];
 			if ( $avatar_type == '' ) {
-				// wird schon jpeg sein
-				$avatar_type = 'JPEG';
+				throw new Exception('Could not determine image type');
 			}
-		} catch (Exception $exc) {}
+			$avatar_vcard_line .= $avatar_type;
+		} catch (Exception $exc) {
+			// wird schon jpeg sein
+			$avatar_vcard_line .= 'JPEG';
+		}
+
+		try {
+			if ( $avatar_file_path == '' ) {
+				throw new Exception('User has no avatar.');
+			}
+			$avatar_file = fopen( $avatar_file_path, 'r' );
+			$avatar_content = fread( $avatar_file, filesize( $avatar_file_path ) );
+			fclose( $avatar_file );
+			$avatar_base64 = base64_encode( $avatar_content );
+			$avatar_vcard_line .= $avatar_base64;
+		} catch (Exception $exc) {
+			// don't include image in vcard
+			$avatar_vcard_line = '';
+		}
 
 		$ret = $ret . '
 			<tbody>
@@ -61,9 +71,11 @@ function faufablab_print_listederaktiven( $attrs ) {
 					<script>
 var faufablab_vcard_' . $user->ID . ' = `BEGIN:VCARD
 VERSION:2.1
+N:' . $user->user_lastname . ';' . $user->user_firstname . ';;;
 FN:' . $user->display_name . '
+NICKNAME:' . $user->nickname . '
 ORG:FAU FabLab
-PHOTO;ENCODING=BASE64;' . $avatar_type . ':' . $avatar_base64 . '
+' . $avatar_vcard_line . '
 TEL;CELL:' . $user->mobile . '
 EMAIL;WORK:' . $user->user_email . '
 REV:' . date("Ymd\THis\Z") . '
@@ -81,7 +93,7 @@ END:VCARD
 							background-position:50% 50%;
 						"></div>
 					</td>
-					<td>' . $user->display_name . '</td>
+					<td>' . $user->user_firstname . ' ' . $user->user_lastname . '<br><small>' . $user->nickname . '</small></td>
 					<td><a href="mailto:' . $user->user_email . '">' . $user->user_email . '</a></td>
 					<td><a href="tel:' . $user->mobile . '">' . $user->mobile . '</a></td>
 					<td>
