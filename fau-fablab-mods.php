@@ -20,3 +20,4 @@ require_once 'faufablab_custom_user_fields.php';
 require_once 'faufablab_liste_der_aktiven.php';
 require_once 'faufablab_door.php';
 require_once 'faufablab_privacy.php';
+require_once 'faufablab_slb_theme.php';
