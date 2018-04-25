@@ -97,7 +97,7 @@ jQuery("#faufablab_profile_image_file").change(function() {
 	if (this.files && this.files[0]) {
 		var reader = new FileReader();
 		reader.onload = function(e) {
-			jQuery('#faufablab_profile_image_preview').css('background-image', `url("${e.target.result}")`);
+			jQuery('#profile_image_btn').css('background-image', `url("${e.target.result}")`);
 		}
 		reader.readAsDataURL(this.files[0]);
 	}
@@ -131,7 +131,9 @@ add_action( 'user_edit_form_tag' , 'faufablab_enctype_multipart' );
 function faufablab_save_user_fields( $user_id ) {
 	$user = get_user_by( 'id', $user_id );
 
-	if ( !current_user_can( 'edit_user', $user ) ) {
+	$current_user = wp_get_current_user();
+
+	if ( $user != $current_user && ! current_user_can( 'edit_users' ) ) {
 		FAUFabLabAdminNotice::displayError(__('You are not allowed to edit this user!'));
 		return false;
 	}
