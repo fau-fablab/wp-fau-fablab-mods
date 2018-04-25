@@ -17,6 +17,10 @@ function faufablab_print_listederaktiven( $attrs ) {
 		'role__in' => array( 'editor', 'administrator' )
 	) );
 
+	usort( $users, function( $user1, $user2 ) {
+		return $user1->user_firstname > $user2->user_firstname;
+	} );
+
 	$ret = '
 		<table id="listederaktiven">
 			<thead>
