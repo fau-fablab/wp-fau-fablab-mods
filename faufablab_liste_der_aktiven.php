@@ -54,6 +54,7 @@ function faufablab_print_listederaktiven( $attrs ) {
 			// wird schon jpeg sein
 			$avatar_vcard_line .= 'JPEG';
 		}
+		$avatar_vcard_line .= ':';
 
 		try {
 			if ( $avatar_file_path == '' ) {
@@ -80,8 +81,8 @@ FN:' . $user->display_name . '
 NICKNAME:' . $user->nickname . '
 ORG:FAU FabLab
 ' . $avatar_vcard_line . '
-TEL;CELL:' . $user->mobile . '
-EMAIL;WORK:' . $user->user_email . '
+TEL;;CELL:' . $user->mobile . '
+EMAIL;WORK;INTERNET:' . $user->user_email . '
 REV:' . date("Ymd\THis\Z") . '
 END:VCARD
 `;
