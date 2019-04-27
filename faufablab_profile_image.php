@@ -80,7 +80,7 @@ function faufablab_profile_image_url( $user ) {
 /**
  * Add custom profile image upload form.
  */
-function faufablab_add_user_fields( $user ) {
+function faufablab_avatar_add_user_fields( $user ) {
 	?>
 <table class="form-table">
 	<tr>
@@ -114,21 +114,21 @@ jQuery("#faufablab_profile_image_file").change(function() {
 </table>
 	<?php
 }
-add_action( 'show_user_profile', 'faufablab_add_user_fields' );
-add_action( 'edit_user_profile', 'faufablab_add_user_fields' );
+add_action( 'show_user_profile', 'faufablab_avatar_add_user_fields' );
+add_action( 'edit_user_profile', 'faufablab_avatar_add_user_fields' );
 
 /**
  * Set the attribute enctype to multipart for the default profile editing form to support image upload.
  */
-function faufablab_enctype_multipart( ) {
+function faufablab_avatar_enctype_multipart( ) {
    echo ' enctype="multipart/form-data"';
 }
-add_action( 'user_edit_form_tag' , 'faufablab_enctype_multipart' );
+add_action( 'user_edit_form_tag' , 'faufablab_avatar_enctype_multipart' );
 
 /**
  * Save custom profile image.
  */
-function faufablab_save_user_fields( $user_id ) {
+function faufablab_avatar_save_user_fields( $user_id ) {
 	$user = get_user_by( 'id', $user_id );
 
 	$current_user = wp_get_current_user();
@@ -186,5 +186,5 @@ function faufablab_save_user_fields( $user_id ) {
 		return false;
 	}
 }
-add_action( 'personal_options_update', 'faufablab_save_user_fields' );
-add_action( 'edit_user_profile_update', 'faufablab_save_user_fields' );
+add_action( 'personal_options_update', 'faufablab_avatar_save_user_fields' );
+add_action( 'edit_user_profile_update', 'faufablab_avatar_save_user_fields' );
