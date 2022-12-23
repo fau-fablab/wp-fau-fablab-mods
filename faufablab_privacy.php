@@ -73,5 +73,5 @@ function faufablab_bp_avatar( $content, $params ) {
 add_filter( 'get_avatar', 'faufablab_avatar', 1, 5 );
 add_filter( 'bp_core_fetch_avatar', 'faufablab_bp_avatar', 1, 2 );
 add_filter( 'bp_core_fetch_avatar_url', 'faufablab_bp_avatar', 1, 2 );
-add_filter( 'user_profile_picture_description', create_function( '$desc', 'return "";' ) );
+add_filter( 'user_profile_picture_description', function ($desc) { return "";} );
 add_filter( 'bp_core_fetch_avatar_no_grav', '__return_true' );
